@@ -7,24 +7,29 @@ A [Claude Code skill](https://docs.claude.com/en/docs/claude-code/skills) that g
 ## What's inside
 
 ```
-bricks-builder-skills/
-+-- SKILL.md                          # entry point Claude loads automatically
-+-- references/
-    +-- elements-catalog.md           # all 73 native elements + 39 control types
-    +-- element-base-controls.md      # _typography, _padding, _background, etc.
-    +-- containers-and-layout.md      # section/container/block/div, flex, grid, masonry
-    +-- interactions-and-animations.md# triggers, actions, Animate.css names, GSAP pattern
-    +-- responsive-breakpoints.md     # :breakpoint_key syntax, mobile-first, custom bps
-    +-- theme-styles-and-globals.md   # theme styles, classes, variables, palettes, components
-    +-- forms.md                      # every field type and action (mailchimp, webhook, --)
-    +-- query-loop.md                 # post/term/user/woo/api queries, filters, pagination
-    +-- conditions.md                 # show/hide logic, all condition keys + operators
-    +-- dynamic-data.md               # {tag} syntax, ACF/MetaBox/JetEngine/Pods integration
-    +-- popups-and-templates.md       # template types, assignment, popup config
-    +-- custom-elements.md            # full child-theme element registration guide
-    +-- db-schema.md                  # every BRICKS_DB_* constant + JSON shapes
-    +-- novamira-verification.md      # live-WP verification recipes via Novamira MCP
-    +-- quick-reference.md            # cheat sheet -- class names, helpers, JS globals
+bricks-builder-skills/                    # repo root = a Claude Code plugin
++-- .claude-plugin/
+|   +-- plugin.json                       # plugin manifest
+|   +-- marketplace.json                  # marketplace entry (one-line install)
++-- skills/
+    +-- bricks-builder-skills/
+        +-- SKILL.md                      # entry point Claude loads automatically
+        +-- references/
+            +-- elements-catalog.md           # all 73 native elements + 39 control types
+            +-- element-base-controls.md      # _typography, _padding, _background, etc.
+            +-- containers-and-layout.md      # section/container/block/div, flex, grid, masonry
+            +-- interactions-and-animations.md# triggers, actions, Animate.css names, GSAP pattern
+            +-- responsive-breakpoints.md     # :breakpoint_key syntax, mobile-first, custom bps
+            +-- theme-styles-and-globals.md   # theme styles, classes, variables, palettes, components
+            +-- forms.md                      # every field type and action (mailchimp, webhook, --)
+            +-- query-loop.md                 # post/term/user/woo/api queries, filters, pagination
+            +-- conditions.md                 # show/hide logic, all condition keys + operators
+            +-- dynamic-data.md               # {tag} syntax, ACF/MetaBox/JetEngine/Pods integration
+            +-- popups-and-templates.md       # template types, assignment, popup config
+            +-- custom-elements.md            # full child-theme element registration guide
+            +-- db-schema.md                  # every BRICKS_DB_* constant + JSON shapes
+            +-- novamira-verification.md      # live-WP verification recipes via Novamira MCP
+            +-- quick-reference.md            # cheat sheet -- class names, helpers, JS globals
 ```
 
 Around **3,500 lines** of reference material, all extracted from Bricks 2.x source files. Verified, not generated.
@@ -46,35 +51,50 @@ Install Novamira from its docs: [novamira.ai/docs/getting-started](https://novam
 
 You need [Claude Code](https://claude.com/claude-code) (or any Anthropic agent runtime that supports the [Skill format](https://docs.claude.com/en/docs/claude-code/skills)).
 
-### Option A -- Project-scoped (recommended)
+### Option A -- Claude Code plugin (recommended)
 
-Drop the skill into your WordPress project root (the directory you open Claude Code from):
+This repo is a Claude Code plugin. Inside Claude Code:
+
+```
+/plugin marketplace add Mekko-Digital/bricks-builder-skills
+/plugin install bricks-builder-skills@mekko-digital
+```
+
+The skill is registered and loads on demand whenever you mention Bricks ("build a hero section", "register a custom element", "add a popup"). Update later with `/plugin marketplace update mekko-digital`.
+
+### Option B -- Project-scoped skill (no plugin system)
+
+Copy just the skill folder into your WordPress project (the directory you open Claude Code from). The skill itself lives at `skills/bricks-builder-skills/` inside the repo:
 
 ```bash
 cd /path/to/your-wp-project
 mkdir -p .claude/skills
-git clone https://github.com//bricks-builder-skills.git \
-  .claude/skills/bricks-builder-skills
+git clone --depth 1 https://github.com/Mekko-Digital/bricks-builder-skills.git /tmp/bbs
+cp -r /tmp/bbs/skills/bricks-builder-skills .claude/skills/bricks-builder-skills
 ```
 
-The skill loads automatically the next time you start Claude Code in that directory. Trigger it by mentioning Bricks ("build a hero section", "register a custom element", "add a popup") -- Claude will pull in `SKILL.md` and the relevant reference on demand.
+The skill loads automatically the next time you start Claude Code in that directory.
 
-### Option B -- User-scoped (available everywhere)
+### Option C -- User-scoped (available everywhere)
 
 ```bash
+git clone --depth 1 https://github.com/Mekko-Digital/bricks-builder-skills.git /tmp/bbs
 mkdir -p ~/.claude/skills
-git clone https://github.com/Mekko-Digital/bricks-builder-skills.git \
-  ~/.claude/skills/bricks-builder-skills
+cp -r /tmp/bbs/skills/bricks-builder-skills ~/.claude/skills/bricks-builder-skills
 ```
 
 The skill is now available in every Claude Code session.
 
-### Option C -- Submodule
+### Option D -- Community `npx` installer (unofficial)
+
+There is **no first-party `npx skills add`** command from Anthropic; skill/plugin distribution is via the plugin marketplace above. Community CLIs exist that wrap the same git-clone step, e.g.:
 
 ```bash
-git submodule add https://github.com/Mekko-Digital/bricks-builder-skills.git \
-  .claude/skills/bricks-builder-skills
+# Unofficial third-party tool -- verify the package before running.
+npx skills add Mekko-Digital/bricks-builder-skills
 ```
+
+These ultimately do the same thing as Option B/C. Prefer Option A unless you have a specific reason to use one.
 
 ## Verify it loaded
 

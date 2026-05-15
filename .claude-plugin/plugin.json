@@ -1,0 +1,13 @@
+{
+  "name": "bricks-builder-skills",
+  "version": "1.0.0",
+  "description": "Build, edit, and audit pages, templates, popups, and custom elements for the Bricks Builder WordPress theme, grounded in verified control keys and JSON shapes (no hallucinated settings).",
+  "author": {
+    "name": "Mekko Digital",
+    "url": "https://mekkodigital.com"
+  },
+  "homepage": "https://github.com/Mekko-Digital/bricks-builder-skills",
+  "repository": "https://github.com/Mekko-Digital/bricks-builder-skills",
+  "license": "MIT",
+  "keywords": ["bricks", "bricks-builder", "wordpress", "page-builder", "skill"]
+}

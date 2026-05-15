@@ -87,6 +87,19 @@ Every rendered element gets these classes on its root tag:
 
 When writing custom CSS targeting Bricks elements, prefer `.brxe-{id}` (stable per element) or a custom class added via `_cssClasses`. Never write CSS against `[id^="brxe-"]` blanket selectors.
 
+### 2.1 Naming conventions you MUST enforce on everything you create
+
+These are non-negotiable. Apply them to every element, class, file, and label you generate -- no exceptions, no project prefixes, no abbreviations that aren't already Bricks' own.
+
+- **Element `name`** -- lowercase, hyphen-separated, and must equal an existing native element file in `includes/elements/` (e.g. `icon-box`, `post-content`, `nav-nested`) or, for a custom element, the exact `$this->name` you registered. Never camelCase, never `snake_case`, never spaces.
+- **Custom-element file & class** -- file is `{stylesheet_dir}/elements/{name}.php` where `{name}` matches `$this->name` verbatim. Exactly one class per file, PascalCase derived from the name (`faq-accordion` -> `Faq_Accordion` / `FaqAccordion`). Read an existing file in the child first and match its style -- do not mix conventions within the child.
+- **CSS classes (`_cssClasses`)** -- **BEM only**: `block`, `block__element`, `block--modifier`, `block__element--modifier`. Lowercase, hyphen-delimited words inside a segment (`hero-banner__cta-button--ghost`). No dots, no vendor/project prefix, no utility soup. One block per component root; descendants are `__element` of that block.
+- **Global classes (`bricks_global_classes`)** -- same BEM scheme for the human `name`; remember `_cssGlobalClasses` stores the class **ID**, not the name (see the pitfall in section 7).
+- **Element `label`** -- human-readable Title Case describing the role, not the type (`"Hero"`, `"Pricing Card"`, not `"container 1"`). Editor-only, but keep it meaningful.
+- **Element `id`** -- 6-char lowercase alphanumeric, Bricks-generated. Don't hand-author IDs that break that shape; if you must synthesize one, match `^[a-z0-9]{6}$`.
+
+If a request implies a class/element/file name that violates BEM or the lowercase-hyphen rule, **rename it to conform and say so** -- do not emit the non-conforming name.
+
 ## 3. The two file layouts that matter
 
 **Theme source (read-only reference):**

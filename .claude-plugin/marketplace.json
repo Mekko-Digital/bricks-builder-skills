@@ -1,0 +1,20 @@
+{
+  "name": "mekko-digital",
+  "owner": {
+    "name": "Mekko Digital",
+    "url": "https://github.com/Mekko-Digital"
+  },
+  "metadata": {
+    "description": "Skills and tools from Mekko Digital.",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "bricks-builder-skills",
+      "source": "./",
+      "description": "Verified Bricks Builder knowledge: page/template JSON shapes, every native element + control key, custom elements, theme styles, breakpoints, forms, query loops, conditions, dynamic data, interactions, and popups.",
+      "version": "1.0.0",
+      "category": "wordpress"
+    }
+  ]
+}
