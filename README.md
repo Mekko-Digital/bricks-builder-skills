@@ -220,11 +220,22 @@ MIT -- see [`LICENSE`](LICENSE).
 
 ## Credits
 
-Built by the Mekko Digital team while shipping Bricks-based marketing sites at scale. Thanks to:
+Built by the **[Mekko Digital](https://mekkodigital.com)** team a small studio that ships fast Webflow & Fullstack MVP solutions and tools **[Mekko Tools](https://mekko.tools)**. If this skill saves your team hours of "wait, what's the actual key?" debugging, star the repo and tell us in [Discussions](https://github.com/Mekko-Digital/bricks-builder-skills/discussions). We'll keep it up to date with Bricks releases.
 
-- The Bricks Builder team -- for a builder whose data shapes are coherent enough to document this densely.
-- The Novamira project -- for making live-WP introspection feasible from inside an AI agent.
+**Tayyab Ul Islam**
 
----
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/tayyabulislam16)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://linkedin.com/in/tayyabulislam16)
+[![X](https://img.shields.io/badge/X-000000?style=flat&logo=x&logoColor=white)](https://x.com/tayyabulislam16)
+[![Facebook](https://img.shields.io/badge/Facebook-1877F2?style=flat&logo=facebook&logoColor=white)](https://www.facebook.com/tayyabulislam16)
+[![Upwork](https://img.shields.io/badge/Upwork-6FDA44?style=flat&logo=upwork&logoColor=white)](https://www.upwork.com/freelancers/tayyabulislam16)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-25D366?style=flat&logo=whatsapp&logoColor=white)](https://wa.me/923060282032)
 
-If this skill saves your team hours of "wait, what's the actual key?" debugging, star the repo and tell us in [Discussions](https://github.com/Mekko-Digital/bricks-builder-skills/discussions). We'll keep it up to date with Bricks releases.
+**Hamza Zafar**
+
+[![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)](https://github.com/thehamzazafar)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=flat&logo=linkedin&logoColor=white)](https://linkedin.com/in/thehamzazafar)
+[![X](https://img.shields.io/badge/X-000000?style=flat&logo=x&logoColor=white)](https://x.com/thehamzazafar)
+[![Facebook](https://img.shields.io/badge/Facebook-1877F2?style=flat&logo=facebook&logoColor=white)](https://www.facebook.com/thehamzazafar)
+[![Upwork](https://img.shields.io/badge/Upwork-6FDA44?style=flat&logo=upwork&logoColor=white)](https://www.upwork.com/freelancers/~01e0b93aab3dc4cc0d)
+[![WhatsApp](https://img.shields.io/badge/WhatsApp-25D366?style=flat&logo=whatsapp&logoColor=white)](https://wa.me/923148023751)
