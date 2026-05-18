@@ -1,10 +1,17 @@
-# Novamira -- Live WordPress Verification Recipes
+# Live WordPress Verification Recipes (WP-CLI or Novamira)
 
-[Novamira](https://github.com/use-novamira/novamira) is an MCP server giving AI agents full WordPress access via PHP execution and filesystem ops. When configured, it's the **primary** verification path for this skill -- it queries the **live install** rather than static disk files, so it's authoritative even when:
+These are PHP recipes for verifying Bricks state against the **live install** rather than static disk files. Every snippet below runs **identically** through either:
+
+- **WP-CLI** (recommended if you have shell access): `wp eval '<the PHP body>'` -- e.g. `wp eval 'return get_post_meta(42, "_bricks_page_content_2", true);'` (or `wp eval-file` for longer scripts). No extra tooling to install.
+- **[Novamira](https://github.com/use-novamira/novamira) MCP** (optional): an MCP server giving the same live access via an `Execute PHP` tool. It **can** work too, but it is **not required and not recommended over WP-CLI** -- if you already have WP-CLI or local file access, you don't need it.
+
+The point is the **live install**, not the tool. Live access is authoritative even when:
 
 - Bricks has been updated since this skill was generated.
 - The user runs Bricks on a different machine or hosting.
 - Disk files diverge from runtime state (caching, plugin overrides, etc.).
+
+If you have neither WP-CLI nor Novamira, local `Read`/`Grep` on the theme on disk is a fully adequate read-only fallback.
 
 ## Discovering tool names
 
@@ -356,9 +363,11 @@ return $rows;
 
 ---
 
-## When to use Novamira vs local Read
+## When to use live access (WP-CLI/Novamira) vs local Read
 
-| Task | Novamira | Local Read/Grep |
+("Execute PHP" below = `wp eval` **or** Novamira Execute PHP -- same snippet either way.)
+
+| Task | Live (WP-CLI / Novamira) | Local Read/Grep |
 |---|---|---|
 | Look up a control key in a Bricks element | ? Read File `{template_dir}/includes/elements/{name}.php` | ? if you have `{template_dir}` on disk |
 | See what's actually saved in the DB | ? Execute PHP `get_post_meta(...)` | ? disk files don't reflect DB |
@@ -370,4 +379,4 @@ return $rows;
 | Verify Bricks version | ? Execute PHP `BRICKS_VERSION` | ?? disk version may differ from active install |
 | Write directly to wp_options | ? Execute PHP `update_option(...)` (confirm first!) | ? |
 
-**Default**: lean on Novamira when present; fall back to local FS otherwise.
+**Default**: use live access when you have it -- WP-CLI and Novamira are equivalent here, neither is preferred; fall back to local FS otherwise. All three make the skill fully usable.

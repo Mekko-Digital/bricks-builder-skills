@@ -2,7 +2,7 @@
 
 73 native elements verified against the Bricks theme source under `{template_dir}/includes/elements/` (locally `{template_dir}/includes/elements\`). Element-class names follow `\Bricks\Element_{Studly_Case}` (e.g. `icon-box` -> `Element_Icon_Box`). Every element extends `\Bricks\Element` (or `\Bricks\Custom_Render_Element` for query-based ones).
 
-> Verify any element's exact controls live: Novamira **Read File** `{template_dir}/includes/elements/{name}.php`, or `Execute PHP` -> `return file_get_contents( get_template_directory() . '/includes/elements/heading.php' );`.
+> Verify any element's exact controls live with whatever access you have (all equivalent): local `Read` `{template_dir}/includes/elements/{name}.php`; WP-CLI `wp eval 'echo file_get_contents( get_template_directory() . "/includes/elements/heading.php" );'`; or, if configured, Novamira **Read File** / `Execute PHP`. Novamira is one option, not required.
 
 The element name is the string saved as `element.name` in the DB JSON. The category drives the builder panel grouping. The default `tag` is the HTML tag rendered when no `tag`/`customTag` setting is provided.
 

@@ -7,32 +7,28 @@ description: Build, edit, and audit pages, templates, popups, and custom element
 
 You are working on the **Bricks Builder** WordPress theme (paid license). The parent theme is at `{template_dir}` and the active child is at `{stylesheet_dir}`. Custom code goes in the child only -- never edit the parent.
 
-> **Path placeholders.** This skill uses `{template_dir}` and `{stylesheet_dir}` as portable placeholders for the live WordPress paths returned by PHP's `get_template_directory()` and `get_stylesheet_directory()`. They are NOT literal strings to type into shell commands. To resolve them at runtime, use Novamira **Execute PHP**: `return get_template_directory();` -- or read your `wp-config.php` to compute them locally. The skill works on any host (Windows, macOS, Linux, hosted WP) regardless of where the install actually lives on disk.
+> **Path placeholders.** This skill uses `{template_dir}` and `{stylesheet_dir}` as portable placeholders for the live WordPress paths returned by PHP's `get_template_directory()` and `get_stylesheet_directory()`. They are NOT literal strings to type into shell commands. To resolve them at runtime, use any access method you already have -- **WP-CLI** (`wp eval 'echo get_template_directory();'`), **Novamira Execute PHP** (`return get_template_directory();`), or just read your `wp-config.php` to compute them locally. The skill works on any host (Windows, macOS, Linux, hosted WP) regardless of where the install actually lives on disk.
 
 The whole point of this skill is **no hallucination**. Every element name, control key, animation name, breakpoint key, condition key, dynamic-data tag, and DB option below is verified against the source. When in doubt, **verify against the live WordPress install** -- don't guess.
 
-## 0. Verification -- prefer Novamira MCP over local files
+## 0. Verification -- any of WP-CLI, Novamira, or local files works
 
-If a Novamira MCP server is configured (it gives full WordPress access via PHP execution + filesystem ops), use it as the **primary** verification path. It targets the **live** WP install -- which is the actual source of truth, and which may differ from static disk paths if the user runs Bricks elsewhere or has updated since this skill was written.
+The skill does not require any particular tool. It works with whatever access you already have to the WordPress install. There are three equally valid verification paths -- use whichever is available; **none is preferred over the others**:
 
-Discover Novamira's exact tool schemas with `ToolSearch query:"novamira"` once per session. The 8 capabilities exposed (verbatim from novamira.ai/docs):
+1. **WP-CLI** -- if you have shell access, `wp eval`, `wp post meta get`, and `wp option get` give you the live runtime state. Examples:
+   - Control key: `wp eval 'echo file_get_contents( get_template_directory() . "/includes/elements/heading.php" );'`
+   - Saved page JSON: `wp post meta get 42 _bricks_page_content_2 --format=json`
+   - Global classes/breakpoints: `wp option get bricks_global_classes --format=json`
+2. **Novamira MCP** -- if a Novamira server is configured, it gives the same live access via PHP execution + filesystem ops. It can work too, but it is **not required and not recommended over WP-CLI or local files** -- it's just another option. Discover its tool schemas with `ToolSearch query:"novamira"` once per session. Its capabilities: **Execute PHP** (full WP env), **Read File**, **Write File** (PHP sandboxed), **Edit File**, **Delete File**, **Disable/Enable File**, **List Directory**. See `references/novamira-verification.md` for ready-made PHP one-liners (they apply equally to `wp eval`).
+3. **Local files** -- if you have the theme on disk at `{template_dir}` / `{stylesheet_dir}`, plain `Read`/`Grep` is functionally equivalent for read-only work.
 
-1. **Execute PHP** -- runs PHP with the full WP env (`$wpdb`, `get_option`, `get_post_meta`, plugins loaded). This is your most powerful tool -- use it for anything DB-related.
-2. **Read File** -- file contents from the server FS.
-3. **Write File** -- create/overwrite (PHP files restricted to a sandbox dir).
-4. **Edit File** -- targeted string replacement.
-5. **Delete File** -- remove files/dirs.
-6. **Disable File** / **Enable File** -- temporarily neutralize sandbox files (toggles `.bak` extension, used for safe rollback during debugging).
-7. **List Directory** -- filtered listing.
+**Decision rule (tool-agnostic):**
+- Need to read the theme source to verify a control key? -> read `{template_dir}/includes/elements/heading.php` via local `Read`, `wp eval ... file_get_contents(...)`, or Novamira **Read File** -- whichever you have.
+- Need to know what's actually saved for a page/template? -> get `get_post_meta(42, '_bricks_page_content_2', true)` via `wp post meta get`, `wp eval`, or Novamira **Execute PHP**.
+- Need to know what global classes / breakpoints / theme styles exist? -> read the `bricks_*` option via `wp option get`, `wp eval`, or Novamira **Execute PHP**.
+- Writing a new custom element? -> write `{stylesheet_dir}/elements/{name}.php` via local `Write`, or Novamira **Write File** (the active child).
 
-**Decision rule:**
-- Need to read the theme source to verify a control key? -> Novamira **Read File** at `get_template_directory()/includes/elements/heading.php` (or local `Read` if you have parent at `{template_dir}`).
-- Need to know what's actually saved for a page/template? -> Novamira **Execute PHP**: `return get_post_meta(42, '_bricks_page_content_2', true);`.
-- Need to know what global classes / breakpoints / theme styles exist? -> Novamira **Execute PHP**: `return get_option('bricks_global_classes');`.
-- Writing a new custom element? -> Novamira **Write File** at `get_stylesheet_directory()/elements/{name}.php` (the active child).
-- See `references/novamira-verification.md` for ready-made PHP one-liners.
-
-If Novamira is **not** configured, fall back to local `Read`/`Grep` against the on-disk paths below -- they're functionally equivalent for read-only work.
+The live install (reachable via WP-CLI or Novamira) is the most authoritative when it differs from static disk -- but read-only disk access alone is enough for the skill to be fully useful.
 
 ## 1. The mental model in 60 seconds
 
@@ -153,12 +149,13 @@ Treat the references in `references/` as the source of truth. They are too long 
 | Build/wire a popup or template (header/footer/archive/single) | `references/popups-and-templates.md` |
 | Register a new custom element via the child theme | `references/custom-elements.md` |
 | Inspect or write Bricks data directly to the DB | `references/db-schema.md` |
-| Use Novamira to verify control keys, read DB state, write files into the WP install | `references/novamira-verification.md` |
+| Verify control keys, read DB state, or write files into the WP install (WP-CLI / Novamira recipes) | `references/novamira-verification.md` |
 | Style cheat sheet -- class names, JSON value shapes, common keys | `references/quick-reference.md` |
 
-Pattern: **before generating any settings JSON, open the relevant reference and copy keys/value shapes verbatim.** Do not invent control keys -- every control key for a native element is verifiable inside `set_controls()` of the element file. Verify via:
-- **Novamira (preferred):** Read File `{TEMPLATEPATH}/includes/elements/{name}.php`, or Execute PHP `return file_get_contents( get_template_directory() . "/includes/elements/{$name}.php" );`
-- **Local fallback:** `Read` `{template_dir}/includes/elements/{name}.php`
+Pattern: **before generating any settings JSON, open the relevant reference and copy keys/value shapes verbatim.** Do not invent control keys -- every control key for a native element is verifiable inside `set_controls()` of the element file. Verify via whichever access you have (all equivalent for this read):
+- **WP-CLI:** `wp eval 'echo file_get_contents( get_template_directory() . "/includes/elements/heading.php" );'`
+- **Local files:** `Read` `{template_dir}/includes/elements/{name}.php`
+- **Novamira (if configured):** Read File `{TEMPLATEPATH}/includes/elements/{name}.php`, or Execute PHP `return file_get_contents( get_template_directory() . "/includes/elements/{$name}.php" );`
 
 ## 5. The four absolute rules
 
