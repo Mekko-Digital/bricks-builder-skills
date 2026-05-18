@@ -96,7 +96,7 @@ $elements = \Bricks\Database::get_data( $page_id, 'header' );    // explicit are
 
 `get_data` returns `[]` if no Bricks data is stored -- i.e. the post wasn't built with Bricks.
 
-**Via Novamira** (no need to be inside WP runtime):
+**Via live access** -- `wp eval` or Novamira Execute PHP (no need to be inside WP runtime):
 ```php
 return \Bricks\Database::get_data( 42, 'content' );
 ```
@@ -158,14 +158,14 @@ Force regenerate (admin):
 
 ## How to safely inspect a page's Bricks JSON in DB
 
-**Preferred -- Novamira Execute PHP** (live install, automatic unserialize):
-```php
-return get_post_meta( 42, '_bricks_page_content_2', true );
-```
-
-**WP-CLI (if you have shell access):**
+**WP-CLI (if you have shell access)** -- live install, automatic unserialize:
 ```bash
 wp post meta get 42 _bricks_page_content_2 --format=json
+```
+
+**Live PHP -- `wp eval` or Novamira Execute PHP** (equivalent to the above):
+```php
+return get_post_meta( 42, '_bricks_page_content_2', true );
 ```
 
 **Raw SQL (last resort):**

@@ -34,18 +34,21 @@ bricks-builder-skills/                    # repo root = a Claude Code plugin
 
 Around **3,500 lines** of reference material, all extracted from Bricks 2.x source files. Verified, not generated.
 
-## Recommended setup: pair with Novamira MCP
+## Setup: the skill is tool-agnostic
 
-This skill is **designed to work alongside [Novamira MCP](https://github.com/use-novamira/novamira)**. Novamira gives Claude live access to your running WordPress install (PHP execution, file ops). Together they let Claude:
+This skill does **not** require any extra tooling. It works with whatever access you already have to the WordPress install -- pick whichever of these you have, none is preferred over the others:
+
+- **WP-CLI** -- if you have shell access, `wp eval` / `wp post meta get` / `wp option get` let Claude verify control keys, read saved page/template JSON, and inspect global options against the live install. The skill works fully this way.
+- **Local files** -- if the theme is on disk, Claude reads `{template_dir}` / `{stylesheet_dir}` directly. Read-only, but enough for the skill to be fully useful.
+- **[Novamira MCP](https://github.com/use-novamira/novamira)** (optional) -- gives Claude the same live access via PHP execution and file ops. It **can** work too, but it is **not recommended over WP-CLI or local files** -- it's just one more option. If you already run it, the skill picks it up automatically (no skill config needed); if you don't, **don't install it on this skill's account** -- WP-CLI or local files cover the same ground.
+
+What live access (WP-CLI **or** Novamira) buys you over static disk reads:
 
 - Verify every Bricks control key against the **live theme files** instead of trusting static docs.
 - Read what's actually saved in the database for any page or template.
-- Write new custom-element files directly into your active child theme.
 - Discover dynamic-data tags added by your installed plugins (ACF / Meta Box / JetEngine / Pods).
 
-Without Novamira the skill still works -- it falls back to static references that ship in this repo. With Novamira installed, references stop being a snapshot and start being a verification baseline against your actual install. **Strong recommendation: install both.**
-
-Install Novamira from its docs: [novamira.ai/docs/getting-started](https://novamira.ai/docs/getting-started/), then this skill picks it up automatically (no skill config needed).
+Without any of these the skill still works -- it falls back to the static references that ship in this repo.
 
 ## Install
 
@@ -128,9 +131,9 @@ It also enforces the **four absolute rules** documented in `SKILL.md`:
 3. Never invent control keys -- verify against the source first.
 4. Responsive overrides use `:breakpoint_key` suffixes, not nesting.
 
-## Novamira recipes (when paired)
+## Live-verification recipes (WP-CLI or Novamira)
 
-Once Novamira is installed in your project, the skill exposes ready-made PHP recipes that Claude can run via Novamira's `Execute PHP` tool. A few examples (full library at [`references/novamira-verification.md`](references/novamira-verification.md)):
+When Claude has live access -- via `wp eval` (WP-CLI) **or** Novamira's `Execute PHP` -- the skill exposes ready-made PHP recipes. The same snippets run either way: `wp eval '<php>'` or Novamira Execute PHP. A few examples (full library at [`references/novamira-verification.md`](references/novamira-verification.md)):
 
 ```php
 // What controls does the heading element actually have?
@@ -151,7 +154,7 @@ do_action( 'init' );
 return apply_filters( 'bricks/dynamic_tags_list', [] );
 ```
 
-The skill prefers these over static disk reads whenever Novamira is detected -- so it's always working against your actual install, not a frozen snapshot of mine.
+Whenever live access is available (WP-CLI or Novamira), the skill leans on these over static disk reads -- so it's working against your actual install, not a frozen snapshot. If only disk access is available, the static references still cover it.
 
 ## Compatibility
 

@@ -4,7 +4,7 @@ You add custom Bricks elements in the child theme. The pattern is already establ
 
 ## 1. Registration
 
-> **Verify the active child path first** with Novamira: `Execute PHP` -> `return get_stylesheet_directory();`. Write your new element file under `{that}/elements/{name}.php` via Novamira **Write File**, then **Edit File** the registration array in `functions.php`.
+> **Verify the active child path first** with whatever you have: WP-CLI `wp eval 'echo get_stylesheet_directory();'`, local `wp-config.php` math, or (if configured) Novamira `Execute PHP` -> `return get_stylesheet_directory();`. Write your new element file under `{that}/elements/{name}.php` with local `Write` (or Novamira **Write File** if that's your only access), then edit the registration array in `functions.php`. Novamira is optional, not required.
 
 In `bricks-child/functions.php`, on `init` priority 11 (after Bricks loads its own elements):
 
