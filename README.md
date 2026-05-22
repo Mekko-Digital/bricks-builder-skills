@@ -243,7 +243,7 @@ MIT -- see [`LICENSE`](LICENSE).
 
 ## Credits
 
-Built by the **[Mekko Digital](https://mekkodigital.com)** team a small studio that ships fast Webflow & Fullstack MVP solutions and tools. If this skill saves your team hours of "wait, what's the actual key?" debugging, star the repo and tell us in [Discussions](https://github.com/Mekko-Digital/bricks-builder-skills/discussions). We'll keep it up to date with Bricks releases.
+Built by the **[Mekko Digital](https://mekkodigital.com)** team a small studio that ships fast Webflow & Fullstack MVP solutions. If this skill saves your team hours of "wait, what's the actual key?" debugging, star the repo and tell us in [Discussions](https://github.com/Mekko-Digital/bricks-builder-skills/discussions). We'll keep it up to date with Bricks releases.
 
 
 Check out our other free tools at **[Mekko Tools](https://mekko.tools/)**.
