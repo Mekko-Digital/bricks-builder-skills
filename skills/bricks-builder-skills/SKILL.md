@@ -164,14 +164,109 @@ Pattern: **before generating any settings JSON, open the relevant reference and 
 3. **Never assume a control key -- verify it.** A heading's text key is `text`, an icon-box's content key is `content`, a button's text key is `text`, but countdown uses `date`, alert uses `content` (editor type). Read the element file or `references/elements-catalog.md`.
 4. **Responsive overrides use `:breakpoint_key` suffix on the SAME flat settings object** -- e.g. `_padding`, `_padding:tablet_portrait`, `_padding:mobile_portrait`. They are **not** nested. The breakpoint keys are the literal `key` values from `bricks_breakpoints` option (defaults: `desktop`, `tablet_portrait`, `mobile_landscape`, `mobile_portrait`).
 
-## 6. Workflow when the user asks you to build a page or section
+## 5.5 Native element vs. component vs. custom PHP class -- decide before writing JSON
 
-1. **Identify the element type(s) needed.** Open `references/elements-catalog.md` and pick by name + category. Prefer `section > container > content elements` for top-level structure (it's the convention reflected in `set_active_templates`).
-2. **Look up control keys** for each element you'll use -- open `{template_dir}/includes/elements/{name}.php` and read its `set_controls()`. For every control key with a `'css'` array, the user is likely styling at runtime; for plain keys, set the value once.
-3. **Apply layout/spacing/typography** via the base-class underscore keys (`_padding`, `_margin`, `_typography`, `_background`, `_border`, `_boxShadow`, `_cssClasses`, `_cssGlobalClasses`). See `references/element-base-controls.md`.
-4. **Wire interactions** if there are any (popups, scroll, hover effects, load-more) -- see `references/interactions-and-animations.md`. Don't reinvent animation classes; Bricks ships with the full Animate.css set, listed there.
-5. **Add responsive overrides** with `:breakpoint_key` suffixed keys.
-6. **Test in the browser** -- reload the page in WP, open it in the Bricks builder, and confirm the panel renders the controls you wrote. The builder reads back from DB exactly what you wrote.
+`references/custom-elements.md` covers HOW to write a custom element. WHETHER to write one is decided here. Run this check on every repeated or non-trivial pattern -- never skip it. The recurring failure mode of this skill is to inline 5 copies of the same structure instead of promoting it to a component or a class.
+
+| Pattern | Build as |
+|---|---|
+| Layout + content, behavior covered by an existing native element | native element + settings (inline) |
+| Same pattern repeats 2+ times, content-only variations | **component** (`bricks_components`) -- instances reference master via `cid` + `instanceId` |
+| One-off but big, edited in isolation | **section template** (`_bricks_template_type = 'section'`) inserted via the `template` element |
+| Custom JS / bespoke server-side render / custom panel controls / behavior native can't express | **custom PHP element** in `{stylesheet_dir}/elements/{name}.php` |
+
+**Heuristic:** if you catch yourself about to copy-paste the same nested-elements JSON 3+ times, stop. Promote to a component (zero PHP). Promote to a custom element only when the component option cannot express the behavior (custom JS, custom controls, custom server render).
+
+This child already ships 7 custom elements (`title.php`, `primary-nav.php`, `faq-accordion.php`, `logo-marquee.php`, `stats-counter.php`, `icon.php`, `roi-calculator.php`). Read at least one before authoring a new file so house style stays consistent.
+
+## 5.6 CSS strategy hierarchy -- where to put styles
+
+`references/theme-styles-and-globals.md` covers each layer in isolation. The hierarchy of WHICH layer to reach for first is decided here. Default to the highest layer that fits -- styling one element with `_cssCustom` what should have been a theme style is the CSS equivalent of inlining what should have been a component.
+
+| Layer | Reach for it when |
+|---|---|
+| **Global variables** (`bricks_global_variables`) | Design tokens -- brand colors, spacing scale, font stack, radii. Defined once, referenced from every layer below. |
+| **Theme styles** (`bricks_theme_styles`) | Sitewide defaults for an element TYPE -- h1/h2 typography, button padding/radius, link color, default form spacing. Applies to every instance of that element unless overridden. |
+| **Global classes** (`bricks_global_classes`) | A reusable styling recipe (`Card`, `CTA Button`, `Section Padding XL`) used on 2+ unrelated elements. Reference by class id in element `_cssGlobalClasses` (Section 7 pitfall: the array stores IDs, not names). |
+| **Per-element underscore keys** (`_padding`, `_typography`, `_background`, `_border`, `_boxShadow`, etc.) | One-off styling for THIS instance only. Default for unique tweaks that won't repeat. |
+| **`_cssCustom`** | Last resort: complex selectors, pseudo-state cascades, parent-of-wrapper targeting, anything the control set cannot express. Use `%root%` to target the element wrapper (`.brxe-{id}`). |
+
+**Promotion rule:** promote down the table only when the higher layer can't express what you need. If two `_cssCustom` blocks do the same thing in two elements, that's a global class. If three buttons share `_padding` + `_border` + `_typography`, that's a theme style or global class. If the same color literal appears 5+ times, that's a global variable.
+
+This pairs with Section 5.5: the BEM `block` name on a component root should match the global-class `name` (or the scope of the theme style) that styles it.
+
+## 6. Workflow when the user asks you to build a page, section, or feature
+
+**Six phases, in order. Skipping any of them is how this skill ships half-built pages -- no header, no reusable components, inline duplicates of patterns that should have been components, no custom element where a bespoke behavior demanded one.** Run all six on every non-trivial build request.
+
+### Phase 0 -- Discover (ask the user before writing any JSON)
+
+Before generating element JSON, you need scope, content, and reuse signals. When the request is ambiguous on any of the items below, **ask the user** (use `AskUserQuestion` if it's available; otherwise ask inline). Do not guess and silently proceed -- the user has explicitly observed this as a failure mode.
+
+- **Scope** -- single page? Section to slot into an existing page? Header/footer template? Popup? Reusable component?
+- **Existing site templates** -- does the site already have a header and footer template? (You will verify in Phase 1, but ask if you don't already know.)
+- **Content** -- copy, images, links, dynamic-data sources. Do not invent marketing copy unless the user authorises filler.
+- **Design references** -- existing pages, theme styles to inherit from, Figma frames, screenshots, competitor links.
+- **Reusability** -- which patterns will appear on multiple pages? Those become components, not inline duplicates.
+- **Responsive priority** -- desktop-first vs. mobile-first; if unsure, mirror an existing page's convention.
+
+If the user has already provided a detailed brief, skip the question -- but **echo back the structural assumptions you're about to act on** so they can correct before you build.
+
+### Phase 1 -- Site-level inventory of templates
+
+List existing `bricks_template` posts and their types/conditions before touching the page body. Three equivalent paths -- use whichever you have:
+
+```bash
+# WP-CLI
+wp post list --post_type=bricks_template --format=table --fields=ID,post_title,post_status
+wp post meta get <id> _bricks_template_type
+wp post meta get <id> _bricks_template_settings --format=json
+```
+```php
+// wp eval / Novamira Execute PHP
+return get_posts( [ 'post_type' => 'bricks_template', 'numberposts' => -1 ] );
+```
+
+Build the map: which header template is active on the page you're targeting? Which footer? Any popups, archive layouts, or section templates that this work needs to coordinate with?
+
+**If no header/footer template is assigned to this page, the front end will render headerless.** Flag this to the user before building the body and plan Phase 3 accordingly. Do not build the body and call it done if the site has no header.
+
+### Phase 2 -- Decompose into templates, components, and elements
+
+Production pages are not one giant inline blob. Break the request into the smallest set of:
+
+1. **Page-level templates** -- header, footer, popups (separate `bricks_template` posts).
+2. **Components** (`bricks_components`) -- patterns repeating 2+ times with content-only variations.
+3. **Section templates** (`_bricks_template_type = 'section'`) -- one-off but big enough to edit in isolation.
+4. **Custom PHP elements** -- when Section 5.5 criteria are met.
+5. **Atomic native elements** -- the rest, inline in the page body.
+
+Apply Section 5.5 to every repeated or non-trivial pattern. **State the decomposition before writing JSON** -- e.g. "I'll build this as 1 new header template, 1 footer template, a `pricing-card` component used 3 times, a `roi-comparison` custom PHP element, and a page body that references the above." Get user sign-off here; restructuring after the build is far more expensive than agreeing on the structure now.
+
+### Phase 3 -- Build header & footer FIRST (if missing or being updated)
+
+If Phase 1 surfaced no header/footer, or the user asked for new ones, build those before the page body. A page without a header looks broken at browser verification and forces a re-do. Recipe in `references/popups-and-templates.md` (`wp_insert_post` with `post_type=bricks_template` + `_bricks_page_header_2` content + `templateConditions: [{ main: include, type: entire_website }]`).
+
+### Phase 4 -- Build components, custom elements, then the page body
+
+In order:
+1. For each custom PHP element identified in Phase 2, write `{stylesheet_dir}/elements/{name}.php` (read an existing one first; see `references/custom-elements.md`) and register it in `bricks-child/functions.php` on `init` priority 11.
+2. For each component identified in Phase 2, create it (Bricks > Components UI, or write programmatically to `bricks_components` option).
+3. Build the page body in `_bricks_page_content_2`, referencing components by `cid` + `instanceId`.
+4. Apply layout via Section 1 model: `section > container > content`. Use BEM for every `_cssClasses` (Section 2.1).
+5. Look up every control key in the element file before using it (Rule 3). No guessing -- ever.
+
+### Phase 5 -- Responsive overrides
+
+Add `:tablet_portrait` / `:mobile_landscape` / `:mobile_portrait` suffixed copies of the key settings (padding, gap, font-size, direction, alignment). See `references/responsive-breakpoints.md`. Mobile-first only if the user asked for it; otherwise mirror the existing site's convention.
+
+### Phase 6 -- Verify in browser, then run the readiness checklist
+
+- Open the page in the Bricks builder. Every control you set must appear in the panel -- if a control is missing, your key is wrong.
+- Hit the front end as a logged-out user (incognito window), at desktop / 768 / 375. Confirm header, body, and footer render correctly in that order.
+- Run Section 11 -- the production-readiness checklist -- end to end.
+
+**Do not declare done until you've loaded the rendered page in a real browser.** JSON that validates but renders an empty page is not a successful build.
 
 ## 7. Pitfalls observed in this codebase
 
@@ -215,5 +310,66 @@ All hook signatures are verified in `{template_dir}/includes/` -- grep before re
 - The child's `style.css` and `bricks-frontend` style depend on each other; child enqueue should declare `bricks-frontend` as parent.
 - `bricks_is_builder()`, `bricks_is_builder_main()`, `bricks_is_builder_iframe()`, `bricks_is_frontend()`, `bricks_is_ajax_call()` -- these globals are how you guard logic; use them.
 - Regenerating CSS files: `Bricks > Settings > General > Regenerate CSS files` button (or the WP-CLI/AJAX `bricks_regenerate_bricks_css_files`). Required after changing custom breakpoints.
+
+## 10. When to ask vs. when to proceed
+
+The rule of thumb: **ask once at Phase 0, then proceed**. After that, only stop and ask if a hard contradiction surfaces in the brief.
+
+**Ask the user before building** when any of these is true:
+- The scope is ambiguous (page vs. section vs. component vs. template vs. popup).
+- You don't know whether a header/footer template already exists, and you can't verify in 1-2 commands.
+- The brief asks for copy/images you would otherwise have to invent.
+- The pattern is repeated and you must choose between component, section template, and custom PHP element.
+- The user mentioned a brand, design system, or style guide you don't have access to.
+
+**Proceed without asking** when:
+- The user supplied a detailed brief that covers scope, content, and references -- but echo back assumptions before writing JSON.
+- The decision is recoverable in seconds (e.g. picking a button variant; just pick a sane default and move on).
+- The choice is a non-negotiable Bricks rule (Section 5) -- apply the rule; you don't ask permission to follow your own rules.
+
+If the user signals they want autonomy ("just build it", "make it look good", "use your judgement"), proceed -- but still surface decomposition (Phase 2 sign-off) and the final readiness checklist (Section 11).
+
+## 11. Production-readiness checklist
+
+Run before declaring any build done. Flag any item you can't tick -- don't silently skip.
+
+**Structure**
+- [ ] Active header AND footer template applied to this page (verified in Phase 1 or built in Phase 3).
+- [ ] Top-level structure is `section > container > content`. No content elements (heading/text/image/button) as direct page children.
+- [ ] Semantic tags chosen on containers/sections: `<section>`, `<header>`, `<footer>`, `<nav>`, `<main>`, `<article>` -- not `<div>` everywhere.
+- [ ] One `<h1>` per page; heading levels not skipped.
+
+**Reuse & naming**
+- [ ] Patterns repeating 2+ times are components or section templates, not inline copies.
+- [ ] Component instances reference the master by `cid` -- editing the master updates every instance.
+- [ ] Every `_cssClasses` value follows BEM (Section 2.1). No utility soup, no project prefix.
+- [ ] Custom element file/class names match `$this->name` exactly (Section 2.1).
+- [ ] Styles are at the right layer (Section 5.6): no `_cssCustom` doing what a theme style or global class should; no color literals where a global variable should live; no global class used only once.
+
+**Responsive**
+- [ ] Verified at desktop, `tablet_portrait`, `mobile_landscape`, `mobile_portrait`.
+- [ ] No horizontal scroll on mobile. Tap targets >= 44x44px. Body font-size >= 16px.
+
+**Accessibility**
+- [ ] Images have meaningful `alt` (or `alt=""` if decorative).
+- [ ] Interactive elements (buttons, links, accordions, tabs) are keyboard-reachable with visible focus.
+- [ ] Color contrast meets WCAG AA (4.5:1 body text, 3:1 large text).
+- [ ] Forms: every input has an associated `<label>` and accessible name. Submit handlers don't silently swallow errors.
+
+**Performance**
+- [ ] `image` element's `sources` + `sizes` used for responsive variants -- no full-resolution hero images on mobile.
+- [ ] Per-page JS enqueued conditionally (`is_page('slug')` pattern in `bricks-child/functions.php`).
+- [ ] Builder-only logic guarded with `bricks_is_builder_main()` early-return; never loads on the frontend.
+
+**Data integrity**
+- [ ] Every control key in your JSON exists in the element's `set_controls()` -- verified by reading the source file, not guessed.
+- [ ] Breakpoint suffixes (`:tablet_portrait` etc.) match the literal keys in `bricks_breakpoints` exactly.
+- [ ] After any programmatic write to `_bricks_page_*_2`, you regenerated CSS (`\Bricks\Assets::generate_css_file_from_post_id($id)` or admin button).
+
+**Verification**
+- [ ] You loaded the rendered front-end page in a real browser, logged out, at 3 viewport widths.
+- [ ] You opened the page in the Bricks builder and confirmed every control you wrote is reflected in the panel.
+
+Type-checking and JSON validation prove data shape, not user experience. **If you can't tick "verified in browser", the work is not complete -- regardless of how clean the JSON looks.**
 
 For deeper detail, open the right reference in `references/`. Default to **read first, write second**.
